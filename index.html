@@ -25,7 +25,14 @@
     button:hover {
       background-color: #218838;
     }
-    #estado {
+    input[type="time"] {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      margin: 10px 0;
+    }
+    #estado, #estadoHora {
       margin-top: 20px;
       font-weight: bold;
     }
@@ -34,17 +41,25 @@
 <body>
 
   <h1>Control de Alimentador</h1>
+
   <p>Haz clic para alimentar manualmente</p>
   <button onclick="activarAlimentador()">Activar Alimentador</button>
   <p id="estado"></p>
 
+  <hr style="margin: 40px 0;">
+
+  <h2>Programar Hora de Alimentación</h2>
+  <input type="time" id="horaAlimento" required>
+  <br>
+  <button onclick="programarHora()">Programar</button>
+  <p id="estadoHora"></p>
+
   <script>
     const DEVICE_ID = "0a10aced202194944a055c30";
     const ACCESS_TOKEN = "ed2b4b082b6e7f701101ccb4b469675e45735485";
-    const FUNCTION_NAME = "alimentar";
 
     function activarAlimentador() {
-      fetch(`https://api.particle.io/v1/devices/${DEVICE_ID}/${FUNCTION_NAME}`, {
+      fetch(`https://api.particle.io/v1/devices/${DEVICE_ID}/alimentar`, {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"
@@ -62,6 +77,38 @@
       .catch(error => {
         console.error("Error:", error);
         document.getElementById("estado").innerText = "Fallo de comunicación con Particle.";
+      });
+    }
+
+    function programarHora() {
+      const horaInput = document.getElementById("horaAlimento").value;
+
+      if (!horaInput) {
+        document.getElementById("estadoHora").innerText = "Por favor selecciona una hora válida.";
+        return;
+      }
+
+      // Convertir HH:MM (formato de <input type="time">) directamente
+      const horaFormateada = horaInput; // ya viene en formato "HH:MM"
+
+      fetch(`https://api.particle.io/v1/devices/${DEVICE_ID}/setTime`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: `access_token=${ACCESS_TOKEN}&args=${horaFormateada}`
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.return_value === 1) {
+          document.getElementById("estadoHora").innerText = `Hora de alimentación programada a ${horaFormateada}.`;
+        } else {
+          document.getElementById("estadoHora").innerText = "Error al programar la hora.";
+        }
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        document.getElementById("estadoHora").innerText = "Fallo de comunicación con Particle.";
       });
     }
   </script>

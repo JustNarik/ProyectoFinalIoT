@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Alimentador Automático</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      text-align: center;
+      padding: 50px;
+    }
+    h1 {
+      color: #333;
+    }
+    button {
+      padding: 15px 30px;
+      font-size: 18px;
+      background-color: #28a745;
+      border: none;
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    #estado {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Control de Alimentador</h1>
+  <p>Haz clic para alimentar manualmente</p>
+  <button onclick="activarAlimentador()">Activar Alimentador</button>
+  <p id="estado"></p>
+
+  <script>
+    const DEVICE_ID = "0a10aced202194944a055c30";
+    const ACCESS_TOKEN = "ed2b4b082b6e7f701101ccb4b469675e45735485";
+    const FUNCTION_NAME = "alimentar";
+
+    function activarAlimentador() {
+      fetch(`https://api.particle.io/v1/devices/${DEVICE_ID}/${FUNCTION_NAME}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: `access_token=${ACCESS_TOKEN}&args=go`
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.return_value === 1) {
+          document.getElementById("estado").innerText = "Alimentador activado correctamente.";
+        } else {
+          document.getElementById("estado").innerText = "Error al activar el alimentador.";
+        }
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        document.getElementById("estado").innerText = "Fallo de comunicación con Particle.";
+      });
+    }
+  </script>
+
+</body>
+</html>
